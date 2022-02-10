@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
 void main() {
   runApp(const MyApp());
@@ -28,6 +32,13 @@ class _MyHomePageState extends State<MyHomePage> {
   final _formKey = GlobalKey<FormState>();
   bool isSwitched = false;
   bool? isChecked = false;
+
+  final _delearID = TextEditingController();
+  final _delearPass = TextEditingController();
+  final _userID = TextEditingController();
+  final _userPass = TextEditingController();
+
+  late AuthData _res;
 
   @override
   Widget build(BuildContext context) {
@@ -113,6 +124,7 @@ class _MyHomePageState extends State<MyHomePage> {
     var dealerIdInput = Padding(
       padding: EdgeInsets.symmetric(horizontal: 80, vertical: 4),
       child: TextFormField(
+        controller: _delearID,
         validator: (value) {
           if (value == null || value.isEmpty) {
             return 'Please enter Dealer ID';
@@ -131,6 +143,7 @@ class _MyHomePageState extends State<MyHomePage> {
     var dealerPassInput = Padding(
       padding: EdgeInsets.symmetric(horizontal: 80, vertical: 4),
       child: TextFormField(
+        controller: _delearPass,
         validator: (value) {
           if (value == null || value.isEmpty) {
             return 'Please enter Dealer Password';
@@ -151,6 +164,7 @@ class _MyHomePageState extends State<MyHomePage> {
     var userIdInput = Padding(
       padding: EdgeInsets.symmetric(horizontal: 80, vertical: 4),
       child: TextFormField(
+        controller: _userID,
         validator: (value) {
           if (value == null || value.isEmpty) {
             return 'Please enter User ID';
@@ -169,6 +183,7 @@ class _MyHomePageState extends State<MyHomePage> {
     var userPassInput = Padding(
       padding: const EdgeInsets.fromLTRB(80, 4, 80, 0),
       child: TextFormField(
+        controller: _userPass,
         obscureText: true,
         obscuringCharacter: '*',
         decoration: InputDecoration(
@@ -230,11 +245,37 @@ class _MyHomePageState extends State<MyHomePage> {
           minimumSize: const Size.fromHeight(50), // NEW
         ),
         child: const Text('Login'),
-        onPressed: () {
+        onPressed: () async {
           if (_formKey.currentState!.validate()) {
+            Map data = {
+              "tenancyName": _delearID.text,
+              "password": _delearPass.text,
+              "usernameOrEmailAddress": _userID.text,
+              "dmsPassword": _userPass.text,
+            };
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Processing Data')),
+              const SnackBar(content: Text('Processing ....')),
             );
+            _res = await postRequest(data);
+            if (_res != null && _res.accessToken != "") {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    content: Text("Login Success"),
+                  );
+                },
+              );
+            } else {
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    content: Text("Login Faiil"),
+                  );
+                },
+              );
+            }
           }
         },
       ),
@@ -314,6 +355,47 @@ class _MyHomePageState extends State<MyHomePage> {
               ],
             )),
       ),
+    );
+  }
+}
+
+Future<AuthData> postRequest(data) async {
+  var url = 'https://ssc-apitest2-hmid.hyundaisvc.com/api/AuthenticateV2';
+
+  //encode Map to JSON
+  var body = json.encode(data);
+
+  var response = await http.post(Uri.parse(url),
+      headers: {"Content-Type": "application/json"}, body: body);
+
+  print("${response.statusCode}");
+  print("${response.body}");
+  if (response.statusCode == 200) {
+    return AuthData.fromJson(jsonDecode(response.body));
+  } else {
+    return AuthData(accessToken: "");
+  }
+}
+
+class AuthData {
+  final String accessToken;
+  final bool? shouldChangePasswordOnNextLogin;
+  final String? passwordResetCode;
+  final String? tenancyName;
+  AuthData({
+    required this.accessToken,
+    this.shouldChangePasswordOnNextLogin,
+    this.passwordResetCode,
+    this.tenancyName,
+  });
+
+  factory AuthData.fromJson(Map<String, dynamic> json) {
+    return AuthData(
+      accessToken: json['result']['accessToken'],
+      shouldChangePasswordOnNextLogin: json['result']
+          ['shouldChangePasswordOnNextLogin'],
+      passwordResetCode: json['result']['passwordResetCode'],
+      tenancyName: json['result']['tenancyName'],
     );
   }
 }
