@@ -25,7 +25,10 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final _formKey = GlobalKey<FormState>();
   bool isSwitched = false;
+  bool? isChecked = false;
+
   @override
   Widget build(BuildContext context) {
     final logoImage = Container(
@@ -80,7 +83,7 @@ class _MyHomePageState extends State<MyHomePage> {
         'Smart Sales Care',
         textAlign: TextAlign.center,
         style: TextStyle(
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
           letterSpacing: 0.5,
           fontSize: 30,
         ),
@@ -88,7 +91,7 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     var switchButton = Padding(
-      padding: EdgeInsets.fromLTRB(0, 40, 80, 0),
+      padding: EdgeInsets.fromLTRB(0, 20, 80, 0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
@@ -108,51 +111,134 @@ class _MyHomePageState extends State<MyHomePage> {
     );
 
     var dealerIdInput = Padding(
-      padding: EdgeInsets.symmetric(horizontal: 80, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 80, vertical: 4),
       child: TextFormField(
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter Dealer ID';
+          }
+          return null;
+        },
         decoration: InputDecoration(
+          fillColor: Colors.white,
+          filled: true,
           border: OutlineInputBorder(),
-          hintText: 'Dealer ID',
+          hintText: 'Dealer ID *',
         ),
       ),
     );
 
     var dealerPassInput = Padding(
-      padding: EdgeInsets.symmetric(horizontal: 80, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 80, vertical: 4),
       child: TextFormField(
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter Dealer Password';
+          }
+          return null;
+        },
+        obscureText: true,
+        obscuringCharacter: '*',
         decoration: InputDecoration(
+          fillColor: Colors.white,
+          filled: true,
           border: OutlineInputBorder(),
-          hintText: 'Dealer Password',
+          hintText: 'Dealer Password *',
         ),
       ),
     );
 
     var userIdInput = Padding(
-      padding: EdgeInsets.symmetric(horizontal: 80, vertical: 8),
+      padding: EdgeInsets.symmetric(horizontal: 80, vertical: 4),
       child: TextFormField(
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Please enter User ID';
+          }
+          return null;
+        },
         decoration: InputDecoration(
+          fillColor: Colors.white,
+          filled: true,
           border: OutlineInputBorder(),
-          hintText: 'User ID (id@email.com)',
+          hintText: 'User ID (id@email.com) *',
         ),
       ),
     );
 
     var userPassInput = Padding(
-      padding: EdgeInsets.symmetric(horizontal: 80, vertical: 8),
+      padding: const EdgeInsets.fromLTRB(80, 4, 80, 0),
       child: TextFormField(
+        obscureText: true,
+        obscuringCharacter: '*',
         decoration: InputDecoration(
+          fillColor: Colors.white,
+          filled: true,
           border: OutlineInputBorder(),
           hintText: 'User Password',
         ),
       ),
     );
 
-    var loginButton = Container(
-        padding: const EdgeInsets.only(left: 150.0, top: 40.0),
-        child: new ElevatedButton(
-          child: const Text('Login'),
-          onPressed: null,
-        ));
+    // var checkKeep = Center(
+    //   child: Container(
+    //     width: 14,
+    //     height: 14,
+    //     decoration: BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
+    //     alignment: Alignment.center,
+    //     child: Checkbox(
+    //       checkColor: Colors.white,
+    //       // fillColor: MaterialStateProperty.resolveWith(getColor),
+    //       value: isChecked,
+    //       shape: CircleBorder(),
+    //       onChanged: (bool? value) {
+    //         setState(() {
+    //           isChecked = value!;
+    //         });
+    //       },
+    //     ),
+    //   ),
+    // );
+
+    var checkListTile = Padding(
+      padding: EdgeInsets.symmetric(horizontal: 58, vertical: 0),
+      child: CheckboxListTile(
+        title: Text(
+          'Keep me logged in',
+          textAlign: TextAlign.left,
+          style: TextStyle(
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+            fontSize: 18,
+          ),
+        ),
+        value: isChecked,
+        controlAffinity: ListTileControlAffinity.leading,
+        onChanged: (bool? value) {
+          setState(() {
+            isChecked = value!;
+          });
+        },
+      ),
+    );
+
+    var loginButton = Padding(
+      padding: const EdgeInsets.fromLTRB(80, 4, 80, 100),
+      child: new ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          primary: Color.fromARGB(255, 11, 82, 139),
+          minimumSize: const Size.fromHeight(50), // NEW
+        ),
+        child: const Text('Login'),
+        onPressed: () {
+          if (_formKey.currentState!.validate()) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Processing Data')),
+            );
+          }
+        },
+      ),
+    );
 
     final leftColumn = Container(
       child: Column(
@@ -180,15 +266,15 @@ class _MyHomePageState extends State<MyHomePage> {
           dealerPassInput,
           userIdInput,
           userPassInput,
-          welcomeText,
+          checkListTile,
           loginButton
         ],
       ),
     );
 
-    return MaterialApp(
-      title: "My app",
-      home: Scaffold(
+    return Form(
+      key: _formKey,
+      child: Scaffold(
         backgroundColor: Colors.transparent,
         body: Container(
             padding: const EdgeInsets.fromLTRB(100, 20, 100, 20),
@@ -207,47 +293,24 @@ class _MyHomePageState extends State<MyHomePage> {
                 Expanded(
                   flex: 9,
                   child: Row(
-                    // crossAxisAlignment: CrossAxisAlignment.start,
-                    // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
                       Expanded(
                         flex: 5,
                         child: Container(
-                          color: Color.fromARGB(255, 243, 237, 237),
+                          color: Color.fromARGB(255, 232, 232, 232),
                           child: leftColumn,
                         ),
                       ),
                       Expanded(
                         flex: 5,
                         child: Container(
-                          color: Color.fromARGB(255, 255, 252, 252),
+                          color: Color.fromARGB(255, 243, 243, 243),
                           child: rightColumn,
                         ),
                       ),
                     ],
                   ),
                 ),
-
-                // Row(
-                //   // crossAxisAlignment: CrossAxisAlignment.start,
-                //   // mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                //   children: [
-                //     Expanded(
-                //       flex: 5,
-                //       child: Container(
-                //         color: Color.fromARGB(255, 243, 237, 237),
-                //         child: leftColumn,
-                //       ),
-                //     ),
-                //     Expanded(
-                //       flex: 5,
-                //       child: Container(
-                //         color: Color.fromARGB(255, 255, 252, 252),
-                //         child: rightColumn,
-                //       ),
-                //     ),
-                //   ],
-                // ),
               ],
             )),
       ),
