@@ -3,9 +3,10 @@ import 'package:flutter_windows_app/show_car.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'package:get_storage/get_storage.dart';
 
-void main() {
+void main() async {
+  await GetStorage.init();
   runApp(const MyApp());
 }
 
@@ -15,8 +16,13 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    final _authKey = GetStorage().read("authKey");
+    if (_authKey != null && _authKey != "") {
+      return MaterialApp(
+        home: const ShowCar(),
+      );
+    }
     return MaterialApp(
-      // home: const MyHomePage(title: 'Flutter Demo Home Page'),
       home: const MyHomePage(),
     );
   }
@@ -32,7 +38,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   final _formKey = GlobalKey<FormState>();
   bool isSwitched = false;
-  bool? isChecked = false;
+  bool? _isRememberLogin = false;
 
   final _delearID = TextEditingController();
   final _delearPass = TextEditingController();
@@ -196,26 +202,6 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
 
-    // var checkKeep = Center(
-    //   child: Container(
-    //     width: 14,
-    //     height: 14,
-    //     decoration: BoxDecoration(color: Colors.orange, shape: BoxShape.circle),
-    //     alignment: Alignment.center,
-    //     child: Checkbox(
-    //       checkColor: Colors.white,
-    //       // fillColor: MaterialStateProperty.resolveWith(getColor),
-    //       value: isChecked,
-    //       shape: CircleBorder(),
-    //       onChanged: (bool? value) {
-    //         setState(() {
-    //           isChecked = value!;
-    //         });
-    //       },
-    //     ),
-    //   ),
-    // );
-
     var checkListTile = Padding(
       padding: EdgeInsets.symmetric(horizontal: 58, vertical: 0),
       child: CheckboxListTile(
@@ -228,11 +214,11 @@ class _MyHomePageState extends State<MyHomePage> {
             fontSize: 18,
           ),
         ),
-        value: isChecked,
+        value: _isRememberLogin,
         controlAffinity: ListTileControlAffinity.leading,
         onChanged: (bool? value) {
           setState(() {
-            isChecked = value!;
+            _isRememberLogin = value;
           });
         },
       ),
@@ -259,6 +245,9 @@ class _MyHomePageState extends State<MyHomePage> {
             );
             _res = await postRequest(data);
             if (_res != null && _res.accessToken != "") {
+              if (_isRememberLogin == true) {
+                GetStorage().write("authKey", _res.accessToken);
+              }
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const ShowCar()),
