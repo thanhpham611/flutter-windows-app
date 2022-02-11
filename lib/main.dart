@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_windows_app/show_car.dart';
 import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
@@ -15,14 +16,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-  final String title;
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -258,13 +259,9 @@ class _MyHomePageState extends State<MyHomePage> {
             );
             _res = await postRequest(data);
             if (_res != null && _res.accessToken != "") {
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return AlertDialog(
-                    content: Text("Login Success"),
-                  );
-                },
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ShowCar()),
               );
             } else {
               showDialog(
